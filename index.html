@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban bord</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-100 to-slate-200 min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl mb-6 p-4 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-7 h-6 text-slate-500">
+                        <i data-lucide="notepad-text" class="w-7 h-6 text-slate-500"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">Kanban Pro</h1>
+                        <p class="text-slate-400 text-sm">Gestion de projets professionnelle</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-200">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-500"></i>
+                            Search
+                        </span>
+                    </label>
+                    <input type="text" id="searchInput" placeholder="Titre ou description..." 
+                           class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 placeholder-slate-400">
+                </div>
+                <div class="w-full md:w-56">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="filter" class="w-4 h-4 text-slate-500"></i>
+                            Filtre priorité
+                        </span>
+                    </label>
+                    <select id="priorityFilter" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 cursor-pointer text-slate-700">
+                        <option value="all" class="bg-white">Toutes les priorités</option>
+                        <option value="low" class="bg-white">Basse</option>
+                        <option value="medium" class="bg-white">Moyenne</option>
+                        <option value="high" class="bg-white">Haute</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="addTaskBtn" class="px-6 py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg hover:from-slate-800 hover:to-slate-900 focus:ring-2 focus:ring-slate-500 shadow-md hover:shadow-lg flex items-center gap-2">
+                        Nouvelle tâche
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="board">
+            <section class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden" data-dropzone="true" data-status="todo">
+                <div class="bg-gradient-to-r from-slate-600 to-slate-700 px-4 py-3">
+                    <h2 class="text-lg font-semibold text-white flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="clock" class="w-5 h-5 text-slate-400"></i>
+                            À faire
+                        </span>
+                    </h2>
+                </div>
+                <div class="p-4 min-h-[500px] bg-slate-50/50" id="col-todo"></div>
+            </section>
+            <section class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden" data-dropzone="true" data-status="doing">
+                <div class="bg-gradient-to-r from-slate-600 to-slate-700 px-4 py-3">
+                    <h2 class="text-lg font-semibold text-white flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="loader" class="w-5 h-5 text-slate-400"></i>
+                            In Progress
+                        </span>
+                    </h2>
+                </div>
+                <div class="p-4 min-h-[500px] bg-slate-50/50" id="col-doing"></div>
+            </section>
+            
+            <!-- Colonne Terminé -->
+            <section class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden" data-dropzone="true" data-status="done">
+                <div class="bg-gradient-to-r from-slate-600 to-slate-700 px-4 py-3">
+                    <h2 class="text-lg font-semibold text-white flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="circle-check" class="w-5 h-5 text-slate-400"></i>
+                            Terminé
+                        </span>
+                    </h2>
+                </div>
+                <div class="p-4 min-h-[500px] bg-slate-50/50" id="col-done"></div>
+            </section>
+        </div>
+    </div>
+
+    <div id="modalRoot" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all">
+            <div class="bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-4 rounded-t-2xl">
+                <h3 class="text-xl font-semibold text-white flex items-center gap-2" id="modalTitle">
+                    <i data-lucide="plus-circle" class="w-6 h-6 text-slate-300"></i>
+                    Ajouter une tâche
+                </h3>
+            </div>
+            
+            <form id="taskForm" class="p-6">
+                <input type="hidden" id="taskId">
+                
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Titre *</label>
+                    <input type="text" id="taskTitle" required 
+                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+                           placeholder="Ex: Créer le header">
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
+                    <textarea id="taskDescription" rows="3" 
+                              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all resize-none"
+                              placeholder="Description détaillée..."></textarea>
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Priorité</label>
+                    <select id="taskPriority" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent">
+                        <option value="low" class="bg-white">Basse</option>
+                        <option value="medium" selected class="bg-white">Moyenne</option>
+                        <option value="high" class="bg-white">Haute</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Statut</label>
+                    <select id="taskStatus" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent">
+                        <option value="todo" class="bg-white">À faire</option>
+                        <option value="doing" class="bg-white">En cours</option>
+                        <option value="done" class="bg-white">Terminé</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="closeModalBtn" class="px-5 py-2.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 transition-all">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg hover:from-slate-800 hover:to-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 transition-all shadow-md hover:shadow-lg">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="App.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
